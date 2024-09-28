@@ -1,10 +1,12 @@
 package buscaminastest;
 
 import java.util.Scanner;
+import java.time.LocalTime;
 
 public class BuscaMinasTest {
     static Scanner sc;
-    static Mapa mapa;
+    static Puntuacion[] highscore = new Puntuacion[3];
+    //static Mapa mapa;
 
     public static void main(String[] args) {
         sc = new Scanner(System.in);
@@ -13,29 +15,20 @@ public class BuscaMinasTest {
         
         boolean terminar = false;
         while (!terminar) {
-            System.out.println("1. Jugar");
-            //System.out.println("2. Mejores puntuaciones"); To Do
-            //decir durante juego cuántas minas quedan
-            System.out.println("2. Salir");
-            
-            int opcion = leerEnRango("Ingrese la opción: ", 1, 2);//
-            //int opcion = 1;//
+            int opcion = mostrarOpciones("la opción", new String[] {"Jugar", "HighScore", "Salir"});
             System.out.println();
             
             switch (opcion) {
                 
                 case 1 -> {
-                    System.out.println("1. Fácil");
-                    System.out.println("2. Medio");
-                    System.out.println("3. Difícil");
-                    
-                    int dificultad = leerEnRango("Ingrese la dificultad: ", 1, 3);//
-                    //int dificultad = 3;//
+                    //String[] dificultades = new String[]{"Fácil", "Medio", "Difícil"};
+                    //int dificultad = mostrarOpciones("la dificultad", dificultades);
+                    int dificultad = mostrarOpciones("la dificultad", new String[]{"Fácil", "Medio", "Difícil"});
                     System.out.println();
                     
-                    int len;//= dificultad*5;//
-                    //jugar(len);//
-                    switch (dificultad) {//por si más diferencias entre dificultad
+                    //int len;//
+                    jugar(dificultad*5);//
+                    /*switch (dificultad) {//por si más diferencias entre dificultad
                         case 1 -> {
                             len = 5;
                             jugar(len);
@@ -48,15 +41,23 @@ public class BuscaMinasTest {
                             len = 15;
                             jugar(len);
                         }
-                    }
+                    }*/
                     
                 }
                 
-                /*case 2 -> {
-                    
-                }*/
-                
                 case 2 -> {
+                    for (int i=0; i<highscore.length; i++) {
+                        if (highscore[i]!=null) {
+                            System.out.println("Dificultad: "+highscore[i].getDificultad());
+                            System.out.println("Tiempo: "+highscore[i].getTiempo()+" segundos");
+                            System.out.println("Banderas restantes: "+highscore[i].getBanderas());
+                            System.out.println();
+                        } else System.out.println("No se ha ganado en: "+nombrarOpcion(i, new String[]{"Fácil","Medio","Difícil"}));
+                    }
+                    System.out.println();
+                }
+                
+                case 3 -> {
                     terminar = true;
                 }
             }
@@ -64,6 +65,21 @@ public class BuscaMinasTest {
         }
     }
 
+    
+    public static int mostrarOpciones(String nom, String[] opciones) {
+        for (int i=0; i<opciones.length; i++) {
+            System.out.println(i+1+". "+opciones[i]);
+        }
+        
+        int eleccion = leerEnRango("Ingrese "+nom+": ", 1, opciones.length);
+        System.out.println();
+        System.out.println(nombrarOpcion(eleccion-1, opciones));
+        return eleccion;
+    }
+    
+    public static String nombrarOpcion(int eleccion, String[] opciones) {
+        return opciones[eleccion];
+    }
     
     public static int leerEnRango(String texto, int min, int max) {
         int dato;
@@ -80,6 +96,9 @@ public class BuscaMinasTest {
     
     
     public static void jugar(int len) {
+        LocalTime inicio = LocalTime.now();
+        
+        Mapa mapa;//
         mapa = new Mapa(len);
         mapa.mostrarVisible(":D");
         
@@ -132,25 +151,26 @@ public class BuscaMinasTest {
                 repetirY = repetirInt("Y", Y+1, 1, len);//
             } while (repetirAcc || repetirX || repetirY);//
             //} while (repetirChar("Acción", acc, "-+") || repetirInts("XY", new int[]{X+1,Y+1}, 1, mapa.length));
-
             System.out.println();
             
+            
             if (accion) {
-                if (mapa.cavar(Y, X)){
+                if (mapa.cavar(Y, X)){ // encuentra mina
                     acabado = true;
-                    System.out.println("nt"); //modificar para highscore
+                    System.out.println("nt");
                     System.out.println();
                     mapa.revelarMapa(false);
                 } else if (mapa.ganar()) {
                     acabado = true;
-                    System.out.println("gg"); //modificar para highscore
+                    System.out.println("gg");
+                    agregarPuntuacion(len/5-1, inicio, mapa.getBanderas());
                     System.out.println();
                     mapa.revelarMapa(true);
                 }
             } else {
                 mapa.abanderar(Y, X);
             }
-       
+        
         }
     }
     
@@ -184,6 +204,23 @@ public class BuscaMinasTest {
         }
         System.out.println("Dato inválido: "+nom+"="+c);
         return true;
+    }
+    
+    
+    public static void agregarPuntuacion(int dificultad, LocalTime inicio, int banderas) {
+        LocalTime fin = LocalTime.now();
+        LocalTime total = fin.minusMinutes(inicio.getMinute()).minusSeconds(inicio.getSecond());
+        
+        int segundos = total.getMinute()*60+total.getSecond();
+        
+        if (highscore[dificultad]!=null)
+            if (segundos<=highscore[dificultad].getTiempo()) {
+                if (segundos == highscore[dificultad].getTiempo() && banderas<=highscore[dificultad].getBanderas())
+                    return;
+                highscore[dificultad] = new Puntuacion(dificultad, segundos, banderas);
+            } else return;
+        
+        highscore[dificultad] = new Puntuacion(dificultad, segundos, banderas);
     }
     
     

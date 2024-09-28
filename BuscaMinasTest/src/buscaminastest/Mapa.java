@@ -2,11 +2,13 @@ package buscaminastest;
 
 public class Mapa {
     //private final int len;//
+    private int banderas;//
     private final int[][] mapa;
     private final String[][] visible;
 
     public Mapa(int len) {
         //this.len = len;//
+        this.banderas = (int)(len*len/4);//
         this.mapa = new int[len][len];
         this.visible = new String[len][len];
         
@@ -17,6 +19,12 @@ public class Mapa {
     /*public int getLen() {
         return len;
     }*/
+    
+    
+    public int getBanderas() {
+        return banderas;
+    }
+    
     
     private void inicializarMapas() {
         for (int[] mapa1:mapa) {
@@ -33,7 +41,7 @@ public class Mapa {
     
     
     public void generarTablero(int actY, int actX) {
-        int minas = (int)(mapa.length*mapa.length/4);
+        int minas = banderas;//(int)(mapa.length*mapa.length/4);
         int x;
         int y;
         
@@ -70,7 +78,7 @@ public class Mapa {
     public boolean cavar(int actY, int actX) {
         if (!"O".equals(visible[actY][actX]))
             if (visible[actY][actX]!=null) return false;
-            else if (mapa[actY][actX]==contarBanderas(actY, actX)) {
+            else if (mapa[actY][actX]==contarBanderasAd(actY, actX)) {
                     for (int i=actY-1; i<=actY+1; i++) {
                         for (int j=actX-1; j<=actX+1; j++) {
                             if (comprobarLimites(i, j))
@@ -88,7 +96,7 @@ public class Mapa {
         
         if (mapa[actY][actX]==0) return true;
         
-        if (contarMinas(actY, actX)==0) {
+        if (contarMinasAd(actY, actX)==0) {
             for (int i=actY-1; i<=actY+1; i++) {
                 for (int j=actX-1; j<=actX+1; j++) {
                     if (comprobarLimites(i, j))
@@ -100,39 +108,42 @@ public class Mapa {
         return false;
     }
     
-    private int contarBanderas(int actY, int actX) {
-        int banderas = 0;
+    private int contarBanderasAd(int actY, int actX) {
+        int banderasAd = 0;
         for (int i=actY-1; i<=actY+1; i++) {
             for (int j=actX-1; j<=actX+1; j++) {
                 if (comprobarLimites(i, j))
-                    if ("+".equals(visible[i][j])) banderas++;
+                    if ("+".equals(visible[i][j])) banderasAd++;
             }
         }
-        return banderas;
+        return banderasAd;
     }
     
-    private int contarMinas(int actY, int actX) {
-        int minas = 0;
+    private int contarMinasAd(int actY, int actX) {
+        int minasAd = 0;
         for (int i=actY-1; i<=actY+1; i++) {
             for (int j=actX-1; j<=actX+1; j++) {
                 if (comprobarLimites(i, j))
-                    if (mapa[i][j]==0) minas++;
+                    if (mapa[i][j]==0) minasAd++;
             }
         }
-        return minas;
+        return minasAd;
     }
     
     
-    public boolean abanderar(int actY, int actX) {
+    public void abanderar(int actY, int actX) {
         if (!"O".equals(visible[actY][actX])) {
-            if ("+".equals(visible[actY][actX]))
+            if ("+".equals(visible[actY][actX])) {
                 visible[actY][actX] = "O";
-            return false;
+                banderas++;
+            }
+            return;
         }
         
-        visible[actY][actX] = "+";
-        
-        return false;
+        if (banderas>0) {
+            visible[actY][actX] = "+";
+            banderas--;
+        }
     }
     
     
@@ -170,6 +181,7 @@ public class Mapa {
     
     
     public void mostrarVisible(String cara) {
+        System.out.println("Banderas restantes: "+banderas);
         System.out.print(cara+"|");
         for (int i=1; i<=mapa.length; i++) {
             System.out.printf("%02d|", i);
